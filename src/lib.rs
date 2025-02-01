@@ -1,7 +1,7 @@
 #![no_std]
 
 const SBUS_PACKET_SIZE: usize = 25;
-const NUM_SBUS_CHANNELS: usize = 16;
+const SBUS_NUM_CHANNELS: usize = 16;
 const SBUS_HEADER: u8 = 0x0F;
 const SBUS_FLAG_BYTE_MASK: u8 = 0xF0;
 const SBUS_FOOTER: u8 = 0x00;
@@ -49,7 +49,7 @@ impl RawSbusPacket {
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SbusPacket {
-    pub channels: [u16; NUM_SBUS_CHANNELS],
+    pub channels: [u16; SBUS_NUM_CHANNELS],
     pub channel_17: bool,
     pub channel_18: bool,
     pub failsafe: bool,
@@ -60,7 +60,7 @@ impl SbusPacket {
     pub fn parse(raw_packet: &RawSbusPacket) -> Self {
         let buf = raw_packet.as_bytes();
         // Initialize channels with 11-bit mask
-        let mut ch: [u16; NUM_SBUS_CHANNELS] = [CHAN_MASK; NUM_SBUS_CHANNELS];
+        let mut ch: [u16; SBUS_NUM_CHANNELS] = [CHAN_MASK; SBUS_NUM_CHANNELS];
 
         ch[0] &= (buf[1] as u16) | ((buf[2] as u16) << 8);
         ch[1] &= ((buf[2] as u16) >> 3) | ((buf[3] as u16) << 5);
@@ -325,5 +325,26 @@ mod tests {
         }
         let err = p.push_byte(BAD_FLAGS[24]).unwrap();
         assert!(err == Err(SbusParserError::InvalidFlags(0xff)));
+    }
+
+    #[test]
+    fn test_basic_raw_packet() {
+        let mut p = SbusParser::new();
+        for b in &RAW_BYTES[0..RAW_BYTES.len() - 1] {
+            assert!(p.push_byte(*b).is_none());
+        }
+        let raw_packet = p.push_byte_raw(RAW_BYTES[24]).unwrap().unwrap();
+        let packet = SbusPacket::parse(&raw_packet);
+
+        let expected = SbusPacket {
+            channels: [
+                992, 992, 352, 992, 352, 352, 352, 352, 352, 352, 992, 992, 0, 0, 0, 0,
+            ],
+            channel_17: true,
+            channel_18: true,
+            failsafe: false,
+            frame_lost: false,
+        };
+        assert!(packet == expected);
     }
 }
