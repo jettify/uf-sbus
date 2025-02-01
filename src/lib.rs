@@ -1,4 +1,5 @@
 #![no_std]
+
 const SBUS_PACKET_SIZE: usize = 25;
 const NUM_SBUS_CHANNELS: usize = 16;
 const SBUS_HEADER: u8 = 0x0F;
@@ -31,6 +32,22 @@ fn is_flag_set_at_position(flag_byte: u8, shift_by: u8) -> bool {
 
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct RawSbusPacket {
+    bytes: [u8; SBUS_PACKET_SIZE],
+}
+
+impl RawSbusPacket {
+    pub fn new(bytes: &[u8; SBUS_PACKET_SIZE]) -> Self {
+        Self { bytes: *bytes }
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+}
+
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SbusPacket {
     pub channels: [u16; NUM_SBUS_CHANNELS],
     pub channel_17: bool,
@@ -39,58 +56,9 @@ pub struct SbusPacket {
     pub frame_lost: bool,
 }
 
-#[derive(Debug, Default, Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
-pub enum State {
-    #[default]
-    AwaitingHead,
-    Reading(usize),
-}
-
-#[derive(Debug, Default)]
-pub struct SbusParser {
-    buffer: [u8; SBUS_PACKET_SIZE],
-    state: State,
-}
-
-impl SbusParser {
-    pub fn new() -> Self {
-        Self {
-            buffer: [0; SBUS_PACKET_SIZE],
-            state: State::AwaitingHead,
-        }
-    }
-    pub fn push_byte(&mut self, byte: u8) -> Option<Result<SbusPacket, SbusParserError>> {
-        match self.state {
-            State::AwaitingHead => {
-                if byte == SBUS_HEADER {
-                    self.buffer[0] = byte;
-                    self.state = State::Reading(1);
-                }
-            }
-            State::Reading(n) if n == SBUS_PACKET_SIZE - 1 => {
-                self.buffer[n] = byte;
-                self.state = State::AwaitingHead;
-                return Some(self.try_parse());
-            }
-            State::Reading(n) => {
-                self.buffer[n] = byte;
-                self.state = State::Reading(n + 1)
-            }
-        }
-        None
-    }
-
-    pub fn reset(&mut self) {
-        self.state = State::AwaitingHead;
-        self.buffer = [0; SBUS_PACKET_SIZE];
-    }
-
-    pub fn try_parse(&self) -> Result<SbusPacket, SbusParserError> {
-        if self.state != State::Reading(SBUS_PACKET_SIZE) {
-            self.validate_frame()?;
-        }
-        let buf = &self.buffer;
-
+impl SbusPacket {
+    pub fn parse(raw_packet: &RawSbusPacket) -> Self {
+        let buf = raw_packet.as_bytes();
         // Initialize channels with 11-bit mask
         let mut ch: [u16; NUM_SBUS_CHANNELS] = [CHAN_MASK; NUM_SBUS_CHANNELS];
 
@@ -114,13 +82,71 @@ impl SbusParser {
 
         let flag_byte = buf[23];
 
-        Ok(SbusPacket {
+        SbusPacket {
             channels: ch,
             channel_17: is_flag_set_at_position(flag_byte, 0),
             channel_18: is_flag_set_at_position(flag_byte, 1),
             frame_lost: is_flag_set_at_position(flag_byte, 2),
             failsafe: is_flag_set_at_position(flag_byte, 3),
-        })
+        }
+    }
+}
+
+#[derive(Debug, Default, Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
+pub enum State {
+    #[default]
+    AwaitingHead,
+    Reading(usize),
+}
+
+#[derive(Debug, Default)]
+pub struct SbusParser {
+    buffer: [u8; SBUS_PACKET_SIZE],
+    state: State,
+}
+
+impl SbusParser {
+    pub fn new() -> Self {
+        Self {
+            buffer: [0; SBUS_PACKET_SIZE],
+            state: State::AwaitingHead,
+        }
+    }
+    pub fn push_byte_raw(&mut self, byte: u8) -> Option<Result<RawSbusPacket, SbusParserError>> {
+        match self.state {
+            State::AwaitingHead => {
+                if byte == SBUS_HEADER {
+                    self.buffer[0] = byte;
+                    self.state = State::Reading(1);
+                }
+            }
+            State::Reading(n) if n == SBUS_PACKET_SIZE - 1 => {
+                self.buffer[n] = byte;
+                self.state = State::AwaitingHead;
+                return Some(self.try_parse());
+            }
+            State::Reading(n) => {
+                self.buffer[n] = byte;
+                self.state = State::Reading(n + 1)
+            }
+        }
+        None
+    }
+    pub fn push_byte(&mut self, byte: u8) -> Option<Result<SbusPacket, SbusParserError>> {
+        self.push_byte_raw(byte)
+            .map(|res| res.map(|raw_packet| SbusPacket::parse(&raw_packet)))
+    }
+
+    pub fn reset(&mut self) {
+        self.state = State::AwaitingHead;
+        self.buffer = [0; SBUS_PACKET_SIZE];
+    }
+
+    fn try_parse(&self) -> Result<RawSbusPacket, SbusParserError> {
+        if self.state != State::Reading(SBUS_PACKET_SIZE) {
+            self.validate_frame()?;
+        }
+        Ok(RawSbusPacket::new(&self.buffer))
     }
 
     pub fn validate_frame(&self) -> Result<(), SbusParserError> {
