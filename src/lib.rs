@@ -106,6 +106,31 @@ pub struct SbusParser {
     state: State,
 }
 
+pub struct PacketIterator<'a, 'b> {
+    parser: &'a mut SbusParser,
+    remaining_data: &'b [u8],
+}
+
+impl Iterator for PacketIterator<'_, '_> {
+    type Item = Result<SbusPacket, SbusParserError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.remaining_data.is_empty() {
+                break;
+            }
+
+            let byte = self.remaining_data[0];
+            self.remaining_data = &self.remaining_data[1..];
+
+            if let Some(result) = self.parser.push_byte(byte) {
+                return Some(result);
+            }
+        }
+        None
+    }
+}
+
 impl SbusParser {
     pub fn new() -> Self {
         Self {
@@ -159,6 +184,12 @@ impl SbusParser {
             Err(SbusParserError::InvalidFlags(flags))
         } else {
             Ok(())
+        }
+    }
+    pub fn iter_packets<'a, 'b>(&'a mut self, data: &'b [u8]) -> PacketIterator<'a, 'b> {
+        PacketIterator {
+            parser: self,
+            remaining_data: data,
         }
     }
 }
@@ -354,5 +385,38 @@ mod tests {
             frame_lost: false,
         };
         assert!(packet == expected);
+    }
+
+    #[test]
+    fn test_basic_iterator() {
+        let data = [
+            0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F, 0xFF, 0x0F, 0xE0, 0x03,
+            0x1F, 0x58, 0xC0, 0x07, 0x16, 0xB0, 0x80, 0x05, 0x2C, 0x60, 0x01, 0x0B, 0xF8, 0xC0,
+            0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0x0F, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+        ];
+        let mut parser = SbusParser::new();
+        let expected = SbusPacket {
+            channels: [
+                992, 992, 352, 992, 352, 352, 352, 352, 352, 352, 992, 992, 0, 0, 0, 0,
+            ],
+            channel_17: true,
+            channel_18: true,
+            failsafe: false,
+            frame_lost: false,
+        };
+
+        let data: std::vec::Vec<Result<SbusPacket, SbusParserError>> =
+            parser.iter_packets(&data).collect();
+        assert!(data.len() == 5);
+        std::println!("{:?}", data);
+        assert!(data[0].is_err());
+        assert!(data[1] == Ok(expected));
+        assert!(data[4].is_err());
     }
 }
