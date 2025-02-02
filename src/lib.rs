@@ -8,13 +8,14 @@ const SBUS_FOOTER: u8 = 0x00;
 const CHAN_MASK: u16 = 0x07FF;
 
 #[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SbusParserError {
     InvalidFooter(u8),
     InvalidFlags(u8),
 }
 
 #[inline(always)]
-pub fn is_sbus_footer(byte: u8) -> bool {
+fn is_sbus_footer(byte: u8) -> bool {
     match byte {
         0x00 => true, // SBUS packet end
         0x04 => true, // SBUS telemetry slot 0 to Slot 7
@@ -139,7 +140,6 @@ impl SbusParser {
 
     pub fn reset(&mut self) {
         self.state = State::AwaitingHead;
-        self.buffer = [0; SBUS_PACKET_SIZE];
     }
 
     fn try_parse(&self) -> Result<RawSbusPacket, SbusParserError> {
