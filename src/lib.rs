@@ -233,10 +233,10 @@ pub fn encode_packet(buf: &mut [u8; SBUS_PACKET_SIZE], packet: &SbusPacket) {
 mod tests {
     use super::*;
     extern crate std;
-
-    use hex_literal::hex;
-    const RAW_BYTES: [u8; 25] =
-        hex!("0F E0 03 1F 58 C0 07 16 B0 80 05 2C 60 01 0B F8 C0 07 00 00 00 00 00 03 00");
+    const RAW_BYTES: [u8; SBUS_PACKET_SIZE] = [
+        0x0F, 0xE0, 0x03, 0x1F, 0x58, 0xC0, 0x07, 0x16, 0xB0, 0x80, 0x05, 0x2C, 0x60, 0x01, 0x0B,
+        0xF8, 0xC0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00,
+    ];
 
     #[test]
     fn test_basic_packing_unpacking() {
@@ -266,8 +266,10 @@ mod tests {
 
     #[test]
     fn test_low_value() {
-        const EXPECTED: [u8; SBUS_PACKET_SIZE] =
-            hex!("0F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
+        const EXPECTED: [u8; SBUS_PACKET_SIZE] = [
+            0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
 
         let packet = SbusPacket {
             channels: [0; 16],
@@ -284,8 +286,10 @@ mod tests {
 
     #[test]
     fn test_high_value() {
-        const EXPECTED: [u8; SBUS_PACKET_SIZE] =
-            hex!("0F FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 0F 00");
+        const EXPECTED: [u8; SBUS_PACKET_SIZE] = [
+            0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F, 0x00,
+        ];
 
         let packet = SbusPacket {
             channels: [2047; 16],
@@ -302,8 +306,10 @@ mod tests {
     #[test]
     fn test_malformed_footer() {
         let mut p = SbusParser::new();
-        const BAD_FOOTER: [u8; SBUS_PACKET_SIZE] =
-            hex!("0F FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 0F FF");
+        const BAD_FOOTER: [u8; SBUS_PACKET_SIZE] = [
+            0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F, 0xFF,
+        ];
 
         assert!(p.state == State::AwaitingHead);
         for b in &BAD_FOOTER[0..BAD_FOOTER.len() - 1] {
@@ -316,8 +322,10 @@ mod tests {
     #[test]
     fn test_malformed_flags() {
         let mut p = SbusParser::new();
-        const BAD_FLAGS: [u8; SBUS_PACKET_SIZE] =
-            hex!("0F FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 00");
+        const BAD_FLAGS: [u8; SBUS_PACKET_SIZE] = [
+            0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+        ];
 
         assert!(p.state == State::AwaitingHead);
         for b in &BAD_FLAGS[0..BAD_FLAGS.len() - 1] {

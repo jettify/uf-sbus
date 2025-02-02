@@ -17,6 +17,3 @@ defmt = { version = "0.3", optional = true }
 
 [features]
 "defmt" = ["dep:defmt"]
-
-[dev-dependencies]
-hex-literal = "0.4.1"
