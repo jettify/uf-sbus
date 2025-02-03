@@ -131,6 +131,31 @@ impl Iterator for PacketIterator<'_, '_> {
     }
 }
 
+pub struct RawPacketIterator<'a, 'b> {
+    parser: &'a mut SbusParser,
+    remaining_data: &'b [u8],
+}
+
+impl Iterator for RawPacketIterator<'_, '_> {
+    type Item = Result<RawSbusPacket, SbusParserError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.remaining_data.is_empty() {
+                break;
+            }
+
+            let byte = self.remaining_data[0];
+            self.remaining_data = &self.remaining_data[1..];
+
+            if let Some(result) = self.parser.push_byte_raw(byte) {
+                return Some(result);
+            }
+        }
+        None
+    }
+}
+
 impl SbusParser {
     pub fn new() -> Self {
         Self {
@@ -188,6 +213,12 @@ impl SbusParser {
     }
     pub fn iter_packets<'a, 'b>(&'a mut self, data: &'b [u8]) -> PacketIterator<'a, 'b> {
         PacketIterator {
+            parser: self,
+            remaining_data: data,
+        }
+    }
+    pub fn iter_packets_raw<'a, 'b>(&'a mut self, data: &'b [u8]) -> RawPacketIterator<'a, 'b> {
+        RawPacketIterator {
             parser: self,
             remaining_data: data,
         }
@@ -411,12 +442,19 @@ mod tests {
             frame_lost: false,
         };
 
-        let data: std::vec::Vec<Result<SbusPacket, SbusParserError>> =
+        let results: std::vec::Vec<Result<SbusPacket, SbusParserError>> =
             parser.iter_packets(&data).collect();
-        assert!(data.len() == 5);
-        std::println!("{:?}", data);
-        assert!(data[0].is_err());
-        assert!(data[1] == Ok(expected));
-        assert!(data[4].is_err());
+        assert!(results.len() == 5);
+        assert!(results[0].is_err());
+        assert!(results[1] == Ok(expected));
+        assert!(results[4].is_err());
+
+        let raw_results: std::vec::Vec<Result<RawSbusPacket, SbusParserError>> =
+            parser.iter_packets_raw(&data).collect();
+        assert!(raw_results.len() == 5);
+        assert!(raw_results[0].is_err());
+
+        assert!(SbusPacket::parse(&raw_results[1].as_ref().unwrap()) == expected);
+        assert!(raw_results[4].is_err());
     }
 }
