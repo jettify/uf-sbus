@@ -1,0 +1,13 @@
+[package]
+license = "Apache-2.0"
+edition = "2024"
+name = "simple-sbus"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+sbus-protocol = { path = "../../../sbus-protocol" }
+
+[[bin]]
+name = "simple"
+path = "src/bin/main.rs"
