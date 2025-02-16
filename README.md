@@ -1,5 +1,7 @@
 # sbus-protocol
 
+![CI](https://github.com/jettify/sbus-protocol/actions/workflows/rust_ci.yml/badge.svg)
+
 A `no_std` compatible Rust library for parsing and encoding SBUS (Serial Bus) packets
 commonly used in RC systems. SBUS is a protocol developed by Futaba for RC
 receivers to communicate with flight controllers and other devices.
