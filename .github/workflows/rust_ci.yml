@@ -35,6 +35,7 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: stable
           components: rust-src, rustfmt, clippy
+          version: "1.85"
       - name: Enable caching
         uses: Swatinem/rust-cache@v2
       - name: Run command
