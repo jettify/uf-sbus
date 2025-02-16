@@ -1,5 +1,3 @@
-cargo-features = ["edition2024"]
-
 [package]
 name = "sbus-protocol"
 version = "0.1.0"
@@ -7,7 +5,7 @@ authors = ["Nickolai Novik <nickolainovik@gmail.com>"]
 repository = "https://github.com/jettify/sbus-protocol"
 categories = ["embedded", "no-std", "parser-implementations", "SBUS"]
 license = "Apache-2.0"
-edition = "2024"
+edition = '2021'
 [dependencies]
 defmt = { version = "0.3", optional = true }
 
