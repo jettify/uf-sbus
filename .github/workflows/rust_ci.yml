@@ -18,6 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        target: [x86_64-unknown-linux-gnu, riscv32imc-unknown-none-elf]
         action:
           - command: build
             args: --release
@@ -31,7 +32,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@v1
         with:
-          target: [x86_64-unknown-linux-gnu, riscv32imc-unknown-none-elf]
+          target: ${{ matrix.target }}
           toolchain: stable
           components: rust-src, rustfmt, clippy
       - name: Enable caching
