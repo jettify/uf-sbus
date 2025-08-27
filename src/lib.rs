@@ -1,4 +1,5 @@
 #![no_std]
+#![forbid(unsafe_code)]
 
 const SBUS_PACKET_SIZE: usize = 25;
 const SBUS_NUM_CHANNELS: usize = 16;
@@ -14,7 +15,7 @@ pub enum SbusParserError {
     InvalidFlags(u8),
 }
 
-#[inline(always)]
+#[inline]
 fn is_sbus_footer(byte: u8) -> bool {
     match byte {
         0x00 => true, // SBUS packet end
@@ -26,7 +27,7 @@ fn is_sbus_footer(byte: u8) -> bool {
     }
 }
 
-#[inline(always)]
+#[inline]
 fn is_flag_set_at_position(flag_byte: u8, shift_by: u8) -> bool {
     (flag_byte >> shift_by) & 1 == 1
 }

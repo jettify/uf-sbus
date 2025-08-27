@@ -1,4 +1,4 @@
-use sbus_protocol::SbusParser;
+use uf_sbus::SbusParser;
 
 fn main() {
     println!("simple example ");

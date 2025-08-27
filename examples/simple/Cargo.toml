@@ -6,7 +6,7 @@ publish = false
 version = "0.1.0"
 
 [dependencies]
-sbus-protocol = { path = "../../../sbus-protocol" }
+uf-sbus = { path = "../../" }
 
 [[bin]]
 name = "simple"
