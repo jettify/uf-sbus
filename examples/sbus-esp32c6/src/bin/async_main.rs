@@ -3,11 +3,11 @@
 
 use defmt::info;
 use embassy_executor::Spawner;
-use embassy_time::{with_timeout, Duration, TimeoutError, Timer};
+use embassy_time::{with_timeout, Duration, TimeoutError};
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Level, Output};
 use esp_hal::uart::{Config, DataBits, Parity, StopBits, Uart};
-use sbus_protocol::SbusParser;
+use uf_sbus::SbusParser;
 use {defmt_rtt as _, esp_backtrace as _};
 
 #[esp_hal_embassy::main]

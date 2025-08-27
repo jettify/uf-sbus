@@ -29,14 +29,14 @@ or
 
 ```toml
 [dependencies]
-sbus-protocol = { version="0.1.0", features = ["defmt"] }
+uf-sbus = { version="0.1.0", features = ["defmt"] }
 
 ```
 
 ## Simple example
 
 ```rust
-use sbus_protocol::SbusParser;
+use uf_sbus::SbusParser;
 
 fn main() {
     println!("simple example ");
@@ -61,7 +61,7 @@ fn main() {
 
 ## Embassy
 
-See esp32c6 example for complete code:
+See `esp32c6` example for complete code:
 
 ```rust
     let mut uart = uart0.into_async();

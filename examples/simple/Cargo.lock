@@ -3,12 +3,12 @@
 version = 4
 
 [[package]]
-name = "sbus-protocol"
-version = "0.1.0"
-
-[[package]]
 name = "simple-sbus"
 version = "0.1.0"
 dependencies = [
- "sbus-protocol",
+ "uf-sbus",
 ]
+
+[[package]]
+name = "uf-sbus"
+version = "0.1.0"
