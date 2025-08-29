@@ -1,6 +1,6 @@
-# sbus-protocol
+# uf-sbus
 
-![CI](https://github.com/jettify/sbus-protocol/actions/workflows/rust_ci.yml/badge.svg)
+![CI](https://github.com/jettify/uf-sbus/actions/workflows/rust_ci.yml/badge.svg)
 
 A `no_std` compatible Rust library for parsing and encoding SBUS (Serial Bus) packets
 commonly used in RC systems. SBUS is a protocol developed by Futaba for RC
@@ -22,7 +22,7 @@ The protocol runs on top of UART communication. Typical parameters are 100kbps (
 ## Installation
 
 ```bash
-cargo add sbus-protocol
+cargo add uf-sbus
 ```
 
 or
