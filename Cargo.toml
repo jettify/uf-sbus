@@ -3,9 +3,13 @@ name = "uf-sbus"
 version = "0.1.0"
 authors = ["Nickolai Novik <nickolainovik@gmail.com>"]
 repository = "https://github.com/jettify/uf-sbus"
-categories = ["embedded", "no-std", "parser-implementations", "SBUS"]
+description = "A `no_std` Rust library for parsing the SBUS protocol, designed for embedded environments"
+categories = ["embedded", "no-std", "parser-implementations"]
 license = "Apache-2.0"
 edition = '2021'
+homepage = "https://github.com/jettify/uf-sbus"
+readme = "README.md"
+
 [dependencies]
 defmt = { version = "1.0.1", optional = true }
 
