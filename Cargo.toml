@@ -1,6 +1,6 @@
 [package]
 name = "uf-sbus"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Nickolai Novik <nickolainovik@gmail.com>"]
 repository = "https://github.com/jettify/uf-sbus"
 description = "A `no_std` Rust library for parsing the SBUS protocol, designed for embedded environments"
