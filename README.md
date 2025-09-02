@@ -1,6 +1,8 @@
 # uf-sbus
 
 ![CI](https://github.com/jettify/uf-sbus/actions/workflows/rust_ci.yml/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/uf-sbus)](https://crates.io/crates/uf-sbus)
+[![docs.rs](https://img.shields.io/docsrs/uf-sbus)](https://docs.rs/uf-sbus/latest/uf_sbus/)
 
 A `no_std` compatible Rust library for parsing and encoding SBUS (Serial Bus) packets
 commonly used in RC systems. SBUS is a protocol developed by Futaba for RC
@@ -92,15 +94,11 @@ See `esp32c6` example for complete code:
 }
 ```
 
-## References
-
-1. Protocol decoder from `sigrok` <https://sigrok.org/wiki/Protocol_decoder:Sbus_futaba>
-1. Arduino library <https://github.com/bolderflight/SBUS>
-
 ## License
 
 Licensed under the Apache License, Version 2.0
 
-## Contributing
+## References
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. [Protocol decoder from `sigrok`](https://sigrok.org/wiki/Protocol_decoder:Sbus_futaba)
+1. [SBUS Arduino library](https://github.com/bolderflight/SBUS)
